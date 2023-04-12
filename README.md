@@ -18,13 +18,13 @@ HOW TO USE
   
   Sample Code:
     - (In parameter order)
-    '''
+    ```
     deuron = Deuron(X, Y, layer_list, Deuron.COST.EXTENDED_CROSS_ENTROPY_COST, 1000, 0.15)
-    '''
+    ```
     - (Not in parameter order)
-    '''
+    ```
     deuron = Deuron(X = X, Y = Y, layer_list = layer_list, cost_type = Deuron.COST.EXTENDED_CROSS_ENTROPY_COST, epoch_number = 1000, alpha = 0.15)
-    '''
+    ```
     
 2. (Optional) Predefine the algotihms that are going to use in learning process (For detail usage, check documentation)
   - Algorithm list:
@@ -35,11 +35,11 @@ HOW TO USE
     - Learning Decay
     
 3. Start the learning process (deuron's start function returns copies of the weights as tuple: (W, B))
-  '''
+  ```
   parameters = deuron.start()
-  '''
+  ```
     
 4. (Optional) Test your test input data after learning by using simple test function
-  '''
+  ```
   Y_predict = deuron.test(X_test)
-  '''
+  ```
