@@ -16,7 +16,7 @@ HOW TO USE
   - epoch (iteration) count
   - initial learning rate alpha
   
-  Sample Code:
+  - Sample Code:
     - (In parameter order)
       ```
       deuron = Deuron(X, Y, layer_list, Deuron.COST.EXTENDED_CROSS_ENTROPY_COST, 1000, 0.15)
