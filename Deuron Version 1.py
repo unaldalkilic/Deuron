@@ -5,6 +5,7 @@ import time
 import os
 from IPython.display import clear_output
 from matplotlib import pyplot as plt
+import zipfile
 
 class Deuron():
     """
@@ -120,7 +121,7 @@ class Deuron():
         NO_OPTIMIZER : Final[str] = "No_Optimizer"
         values: Final[list] = [MOMENTUM, ADAM, NO_OPTIMIZER]
 
-    def __init__(self, X: np.array, Y: np.array, layer_list: list, cost_type: str, epoch_number: int, alpha: float):
+    def __init__(self, X: np.array, Y: np.array, layer_list: list, cost_type: str, epoch_number: int, alpha: float, created_with_state = False, parameter_dict = None):
         """
         === Deuron Constructor ===
 
@@ -160,7 +161,10 @@ class Deuron():
             self.__beta_1 = 0
             self.__beta_2 = 0
             self.__epsilon = 1e-10
-            self.__initialize_params()
+            if (not created_with_state):
+                self.__initialize_params()
+            else:
+                self.__put_related_parameters(parameter_dict)
         else:
             raise Exception("Error! Invalid value for alpha, cost type or epoch number parameters")
 
@@ -243,6 +247,13 @@ class Deuron():
         for i in range(1,self.__L):
             self.__W[str(i)] = np.random.randn(self.__layer_number_of_nodes_list[i-1], self.__layer_number_of_nodes_list[i]) * np.sqrt(2/(self.__layer_number_of_nodes_list[i-1]))
             self.__B[str(i)] = np.zeros((self.__layer_number_of_nodes_list[i], 1))
+
+    def __put_related_parameters(self, parameter_dict):
+        # Experimental
+        if len(parameter_dict) == 2:
+            self.__W, self.__B = copy.deepcopy(parameter_dict)
+        else:
+            raise Exception("Invalid parameter dictionary, please check the validity of state files")
 
     def set_mini_batch(self, batch_size: int):
         """
@@ -554,6 +565,7 @@ class Deuron():
                     self.__beta_1 = copy.deepcopy(beta1)
                     self.__beta_2 = copy.deepcopy(beta2)
                     self.__initialize_adam_optimizer()
+                self.__optimizer = optimizer
             else:
                 raise Exception("Error! beta1 and beta2 values must be greater than 0")
         else:
@@ -692,22 +704,22 @@ class Deuron():
         elif self.__optimizer == Deuron.OPTIMIZER.ADAM:
             for i in range(1, self.__L):
                 self.__velocity_data['dW'+str(i)] = self.__beta_1 * self.__velocity_data['dW'+str(i)] + (1 - self.__beta_1) * self.__dW[str(i)]
-                self.__velocity_data['db'+str(i)] = self.__beta_1 * self.__velocity_data['db'+str(i)] + (1 - self.__beta_1) * self.__dB[str(i)]
+                self.__velocity_data['dB'+str(i)] = self.__beta_1 * self.__velocity_data['dB'+str(i)] + (1 - self.__beta_1) * self.__dB[str(i)]
                 adam_counter = iter_number + 1
-                velocity_data_corrected_dw = self.__velocity_data["dW"+str(i)] / (1 - self.__beta_1**adam_counter)
-                velocity_data_corrected_db = self.__velocity_data["db"+str(i)] / (1 - self.__beta_1**adam_counter)
-                self.__adam_data["dw"+str(i)] = self.__beta_2 * self.__adam_data["dw"+str(i)] + (1 - self.__beta_2) * self.__dW[str(i)]**2
-                self.__adam_data["db"+str(i)] = self.__beta_2 * self.__adam_data["db"+str(i)] + (1 - self.__beta_2) * self.__dW[str(i)]**2
-                adam_data_corrected_dw = self.__adam_data["dw"+str(i)] / (1 - self.__beta_2**adam_counter)
-                adam_data_corrected_db = self.__adam_data["db"+str(i)] / (1 - self.__beta_2**adam_counter)
-                self.__W[str(i)] = self.__W[str(i)] - alpha * (velocity_data_corrected_dw / ((adam_data_corrected_dw)**0.5 + self.__epsilon))
-                self.__B[str(i)] = self.__B[str(i)] - alpha * (velocity_data_corrected_db / ((adam_data_corrected_db)**0.5 + self.__epsilon))
+                velocity_data_corrected_dW = self.__velocity_data["dW"+str(i)] / (1 - self.__beta_1**adam_counter)
+                velocity_data_corrected_dB = self.__velocity_data["dB"+str(i)] / (1 - self.__beta_1**adam_counter)
+                self.__adam_data["dW"+str(i)] = self.__beta_2 * self.__adam_data["dW"+str(i)] + (1 - self.__beta_2) * self.__dW[str(i)]**2
+                self.__adam_data["dB"+str(i)] = self.__beta_2 * self.__adam_data["dB"+str(i)] + (1 - self.__beta_2) * self.__dB[str(i)]**2
+                adam_data_corrected_dW = self.__adam_data["dW"+str(i)] / (1 - self.__beta_2**adam_counter)
+                adam_data_corrected_dB = self.__adam_data["dB"+str(i)] / (1 - self.__beta_2**adam_counter)
+                self.__W[str(i)] = self.__W[str(i)] - alpha * (velocity_data_corrected_dW / ((adam_data_corrected_dW)**0.5 + self.__epsilon))
+                self.__B[str(i)] = self.__B[str(i)] - alpha * (velocity_data_corrected_dB / ((adam_data_corrected_dB)**0.5 + self.__epsilon))
         else:
             for i in range(1, self.__L):
                 self.__velocity_data['dW'+str(i)] = self.__beta_1 * self.__velocity_data['dW'+str(i)] + (1 - self.__beta_1) * self.__dW[str(i)]
-                self.__velocity_data['db'+str(i)] = self.__beta_1 * self.__velocity_data['db'+str(i)] + (1 - self.__beta_1) * self.__dB[str(i)]
+                self.__velocity_data['dB'+str(i)] = self.__beta_1 * self.__velocity_data['dB'+str(i)] + (1 - self.__beta_1) * self.__dB[str(i)]
                 self.__W[str(i)] = self.__W[str(i)] - alpha * self.__velocity_data['dW'+str(i)]
-                self.__B[str(i)] = self.__B[str(i)] - alpha * self.__velocity_data['db'+str(i)]
+                self.__B[str(i)] = self.__B[str(i)] - alpha * self.__velocity_data['dB'+str(i)]
 
     def __plot_cost(self):
         plt.plot(self.__J, 'r-')
@@ -725,12 +737,13 @@ class Deuron():
         self.__apply_transform()
         self.__prepare_data_matrices()
         initial_time = time.time()
+        total = 0
         for iter in range(self.__epoch_number):
             if self.__batch_count != 1:
                 # Shuffle and portition of mini batches for each iteration
                 self.__seed += 1
                 np.random.seed(self.__seed)
-                self.__apply_mini_batch()
+                self.__apply_mini_batch() 
             batch_cost_total = 0
             for batch_index in range(self.__batch_count):
                 self.__A["0"] = self.__X_list[batch_index]
@@ -739,7 +752,7 @@ class Deuron():
                 self.__forward_prop()
                 batch_cost_total += self.__cost()
                 self.__backward_prop()
-                self.__gradient_desc(iter)                
+                self.__gradient_desc(iter)   
             self.__J[iter] = batch_cost_total / self.__batch_count
             if iter % 100 == 0 or iter == 0:
                 self.__console_content += f"Iteration:\t{iter + 1}\t\tCost:\t{self.__J[iter]}\tJ\n"
