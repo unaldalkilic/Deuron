@@ -3,7 +3,6 @@ from typing import Final
 import numpy as np
 import time
 import os
-from IPython.display import clear_output
 from matplotlib import pyplot as plt
 import zipfile
 
@@ -151,11 +150,6 @@ class Deuron():
             self.__batch_count = 1
             self.__seed = np.random.randint(1000000)
             np.random.seed(self.__seed)
-            self.__console_log = ""
-            self.__console_header = ""
-            self.__console_content = ""
-            self.__console_pattern = ["/","-","\\", "|"]
-            self.__pattern_turn = 0
             self.__alpha_decay_rate = 0
             self.__learning_decay_time_interval = 100
             self.__beta_1 = 0
