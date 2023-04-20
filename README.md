@@ -33,6 +33,7 @@ HOW TO USE
     - Batch size scale --> Batch, Mini batch or Stochastic gradient descent
     - Optimization --> Momentum, Adam
     - Learning Decay
+    - State Save/Load
     
 3. Start the learning process (deuron's start function returns copies of the weights as tuple: (W, B))
   ```
